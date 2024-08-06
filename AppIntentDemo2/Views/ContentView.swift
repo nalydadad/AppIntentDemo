@@ -11,6 +11,7 @@ import AppIntents
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
+    @Environment(NavigationManager.self) private var navigation
     
     @FetchRequest(
         sortDescriptors: [
@@ -35,7 +36,8 @@ struct ContentView: View {
     @State private var searchText: String = ""
     
     var body: some View {
-        NavigationView {
+        @Bindable var navigation = navigation
+        NavigationStack(path: $navigation.path) {
             List {
                 Section() {
                     if showHint {
@@ -46,9 +48,7 @@ struct ContentView: View {
                 
                 Section {
                     ForEach(pinnedItems) { item in
-                        NavigationLink {
-                            DetailView(item: item)
-                        } label: {
+                        NavigationLink(value: item) {
                             HStack {
                                 VStack(alignment: .leading) {
                                     Text(item.title ?? "")
@@ -85,9 +85,7 @@ struct ContentView: View {
                 
                 Section {
                     ForEach(unpinnedItems) { item in
-                        NavigationLink {
-                            DetailView(item: item)
-                        } label: {
+                        NavigationLink(value: item) {
                             HStack {
                                 VStack(alignment: .leading) {
                                     Text(item.title ?? "")
@@ -132,6 +130,9 @@ struct ContentView: View {
                     })
                 }
             }
+            .navigationDestination(for: ItemModel.self, destination: { item in
+                DetailView(item: item)
+            })
             .navigationTitle("Quick notes")
         }
         .searchable(text: $searchText)

@@ -12,7 +12,7 @@ import SwiftUI
 struct OpenItemIntent: AppIntent {
     static var title: LocalizedStringResource = "Open Item"
     static var description: IntentDescription? = IntentDescription("Open an item in the app.", categoryName: "Open")
-
+    static var openAppWhenRun: Bool = true
     static var parameterSummary: some ParameterSummary { Summary("Open \(\.$item)") }
     
     init() {}
@@ -32,6 +32,10 @@ struct OpenItemIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult  {
+        guard let item = try persistentController.findItemsBy(identifiers: [item.id]).first else {
+            return .result()
+        }
+        navigatoinManager.open(item: item)
         return .result()
     }
 }
@@ -61,29 +65,14 @@ struct ItemQuery: EntityQuery {
     var persistentController: PersistenceController
     
     func entities(for identifiers: [String]) async throws -> [ItemEntity] {
-        let context = persistentController.container.viewContext
-        let request: NSFetchRequest<ItemModel> = ItemModel.fetchRequest()
-        request.predicate = NSPredicate(format: "id IN %@", identifiers)
-        request.sortDescriptors = [
-            NSSortDescriptor(keyPath: \ItemModel.pinned, ascending: false),
-            NSSortDescriptor(keyPath: \ItemModel.title, ascending: true),
-        ]
-        request.fetchLimit = 10
-        let result = try context.fetch(request)
+        let result = try persistentController.findItemsBy(identifiers: identifiers)
         return result.compactMap {
             ItemEntity(id: $0.id?.uuidString ?? "", name: $0.title ?? "", date: $0.timestamp ?? Date(), pinned: $0.pinned)
         }
     }
     
     func suggestedEntities() async throws -> [ItemEntity] {
-        let context = persistentController.container.viewContext
-        let request: NSFetchRequest<ItemModel> = ItemModel.fetchRequest()
-        request.sortDescriptors = [
-            NSSortDescriptor(keyPath: \ItemModel.pinned, ascending: false),
-            NSSortDescriptor(keyPath: \ItemModel.title, ascending: true),
-        ]
-        request.fetchLimit = 10
-        let result = try context.fetch(request)
+        let result = try persistentController.findItems()
         return result.compactMap {
             ItemEntity(id: $0.id?.uuidString ?? "", name: $0.title ?? "", date: $0.timestamp ?? Date(), pinned: $0.pinned)
         }
@@ -92,15 +81,7 @@ struct ItemQuery: EntityQuery {
 
 extension ItemQuery: EntityStringQuery {
     func entities(matching string: String) async throws -> [ItemEntity] {
-        let context = persistentController.container.viewContext
-        let request: NSFetchRequest<ItemModel> = ItemModel.fetchRequest()
-        request.predicate = NSPredicate(format: "title CONTAINS[c] %@", string)
-        request.sortDescriptors = [
-            NSSortDescriptor(keyPath: \ItemModel.pinned, ascending: false),
-            NSSortDescriptor(keyPath: \ItemModel.title, ascending: true),
-        ]
-        request.fetchLimit = 10
-        let result = try context.fetch(request)
+        let result = try persistentController.findItemsBy(name: string)
         return result.compactMap {
             ItemEntity(id: $0.id?.uuidString ?? "",
                        name: $0.title ?? "",

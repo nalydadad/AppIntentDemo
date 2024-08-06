@@ -15,13 +15,14 @@ struct AppIntentDemo2App: App {
     init () {
         Shortcuts.updateAppShortcutParameters()
         AppDependencyManager.shared.add(dependency: PersistenceController.shared)
-        AppDependencyManager.shared.add(dependency: NavigationManager())
+        AppDependencyManager.shared.add(dependency: NavigationManager.shared)
     }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .environment(NavigationManager.shared)
         }
     }
 }

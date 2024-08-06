@@ -55,3 +55,45 @@ struct PersistenceController {
         container.viewContext.automaticallyMergesChangesFromParent = true
     }
 }
+
+extension PersistenceController {
+    func findItems(fetchLimit: Int = 10) throws -> [ItemModel]  {
+        let context = container.viewContext
+        let request: NSFetchRequest<ItemModel> = ItemModel.fetchRequest()
+        request.sortDescriptors = [
+            NSSortDescriptor(keyPath: \ItemModel.pinned, ascending: false),
+            NSSortDescriptor(keyPath: \ItemModel.title, ascending: true),
+        ]
+        request.fetchLimit = 10
+        let result = try context.fetch(request)
+        return result
+    }
+    
+    func findItemsBy(name: String, fetchLimit: Int = 10) throws -> [ItemModel] {
+        let context = container.viewContext
+        let request: NSFetchRequest<ItemModel> = ItemModel.fetchRequest()
+        request.predicate = NSPredicate(format: "title CONTAINS[c] %@", name)
+        request.sortDescriptors = [
+            NSSortDescriptor(keyPath: \ItemModel.pinned, ascending: false),
+            NSSortDescriptor(keyPath: \ItemModel.title, ascending: true),
+        ]
+        request.fetchLimit = 10
+        let result = try context.fetch(request)
+        return result
+    }
+    
+    func findItemsBy(identifiers: [String], fetchLimit: Int = 10) throws -> [ItemModel] {
+        let context = container.viewContext
+        let request: NSFetchRequest<ItemModel> = ItemModel.fetchRequest()
+        request.predicate = NSPredicate(format: "id IN %@", identifiers)
+        request.sortDescriptors = [
+            NSSortDescriptor(keyPath: \ItemModel.pinned, ascending: false),
+            NSSortDescriptor(keyPath: \ItemModel.title, ascending: true),
+        ]
+        request.fetchLimit = 10
+        let result = try context.fetch(request)
+        return result
+    }
+    
+    
+}
