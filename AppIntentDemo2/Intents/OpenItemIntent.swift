@@ -32,7 +32,7 @@ struct OpenItemIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult  {
-        guard let item = try persistentController.findItemsBy(identifiers: [item.id]).first else {
+        guard let item = try persistentController.container.viewContext.findItemsBy(identifiers: [item.id]).first else {
             return .result()
         }
         navigatoinManager.open(item: item)
@@ -65,14 +65,14 @@ struct ItemQuery: EntityQuery {
     var persistentController: PersistenceController
     
     func entities(for identifiers: [String]) async throws -> [ItemEntity] {
-        let result = try persistentController.findItemsBy(identifiers: identifiers)
+        let result = try persistentController.container.viewContext.findItemsBy(identifiers: identifiers)
         return result.compactMap {
             ItemEntity(id: $0.id?.uuidString ?? "", name: $0.title ?? "", date: $0.timestamp ?? Date(), pinned: $0.pinned)
         }
     }
     
     func suggestedEntities() async throws -> [ItemEntity] {
-        let result = try persistentController.findItems()
+        let result = try persistentController.container.viewContext.findItems()
         return result.compactMap {
             ItemEntity(id: $0.id?.uuidString ?? "", name: $0.title ?? "", date: $0.timestamp ?? Date(), pinned: $0.pinned)
         }
@@ -81,7 +81,7 @@ struct ItemQuery: EntityQuery {
 
 extension ItemQuery: EntityStringQuery {
     func entities(matching string: String) async throws -> [ItemEntity] {
-        let result = try persistentController.findItemsBy(name: string)
+        let result = try persistentController.container.viewContext.findItemsBy(name: string)
         return result.compactMap {
             ItemEntity(id: $0.id?.uuidString ?? "",
                        name: $0.title ?? "",

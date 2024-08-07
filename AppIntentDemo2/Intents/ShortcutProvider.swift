@@ -31,7 +31,25 @@ struct Shortcuts: AppShortcutsProvider {
                     "Open \(\.$item) in \(.applicationName)"
                 ],
                 shortTitle: "Open Item",
-                systemImageName: "list.bullet"),
+                systemImageName: "list.bullet"
+            ),
+            AppShortcut(
+                intent: ToggleItemIntent(),
+                phrases: [
+                    "\(\.$toggle) in \(.applicationName)"
+                ],
+                shortTitle: "Toggle Item",
+                systemImageName: "list.bullet"
+            ),
+            AppShortcut(
+                intent: CreateItemIntent(),
+                phrases: [
+                    "Create \(\.$pinned) in \(.applicationName)"
+                ],
+                shortTitle: "Create Item",
+                systemImageName: "plus.circle"
+            ),
+            
         ]
     }
 }

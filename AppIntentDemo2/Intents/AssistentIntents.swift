@@ -60,3 +60,17 @@ struct MailAccountEntity {
     var name: String
     var emailAddress: String
 }
+
+@AssistantIntent(schema: .system.search)
+struct SystemSearchIntent: AppIntent {
+    static var searchScopes: [StringSearchScope] = [.general]
+    var criteria: StringSearchCriteria
+    
+    @Dependency
+    var navigationManager: NavigationManager
+    
+    func perform() async throws -> some IntentResult {
+        navigationManager.search(criteria.term)
+        return .result()
+    }
+}

@@ -56,21 +56,19 @@ struct PersistenceController {
     }
 }
 
-extension PersistenceController {
+extension NSManagedObjectContext {
     func findItems(fetchLimit: Int = 10) throws -> [ItemModel]  {
-        let context = container.viewContext
         let request: NSFetchRequest<ItemModel> = ItemModel.fetchRequest()
         request.sortDescriptors = [
             NSSortDescriptor(keyPath: \ItemModel.pinned, ascending: false),
             NSSortDescriptor(keyPath: \ItemModel.title, ascending: true),
         ]
         request.fetchLimit = 10
-        let result = try context.fetch(request)
+        let result = try fetch(request)
         return result
     }
     
     func findItemsBy(name: String, fetchLimit: Int = 10) throws -> [ItemModel] {
-        let context = container.viewContext
         let request: NSFetchRequest<ItemModel> = ItemModel.fetchRequest()
         request.predicate = NSPredicate(format: "title CONTAINS[c] %@", name)
         request.sortDescriptors = [
@@ -78,12 +76,11 @@ extension PersistenceController {
             NSSortDescriptor(keyPath: \ItemModel.title, ascending: true),
         ]
         request.fetchLimit = 10
-        let result = try context.fetch(request)
+        let result = try fetch(request)
         return result
     }
     
     func findItemsBy(identifiers: [String], fetchLimit: Int = 10) throws -> [ItemModel] {
-        let context = container.viewContext
         let request: NSFetchRequest<ItemModel> = ItemModel.fetchRequest()
         request.predicate = NSPredicate(format: "id IN %@", identifiers)
         request.sortDescriptors = [
@@ -91,9 +88,17 @@ extension PersistenceController {
             NSSortDescriptor(keyPath: \ItemModel.title, ascending: true),
         ]
         request.fetchLimit = 10
-        let result = try context.fetch(request)
+        let result = try fetch(request)
         return result
     }
     
+    func addItem(name: String, pinned: Bool = false) throws {
+        let newItem = ItemModel(context: self)
+        newItem.id = UUID()
+        newItem.timestamp = Date()
+        newItem.title = name
+        newItem.pinned = pinned
+        try save()
+    }
     
 }

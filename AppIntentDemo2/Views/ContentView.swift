@@ -135,8 +135,8 @@ struct ContentView: View {
             })
             .navigationTitle("Quick notes")
         }
-        .searchable(text: $searchText)
-        .onChange(of: searchText, { _, new in
+        .searchable(text: $navigation.searchText)
+        .onChange(of: navigation.searchText, { _, new in
             let containNamePredicate = NSPredicate(format: "title CONTAINS[c] %@", new as NSString)
             let pinndedPrecicate = NSPredicate(format: "pinned == %@", true as NSNumber)
             let unpinnedPrecicate = NSPredicate(format: "pinned == %@", false as NSNumber)
@@ -159,14 +159,8 @@ struct ContentView: View {
     
     private func addItem(name: String) {
         withAnimation {
-            let newItem = ItemModel(context: viewContext)
-            newItem.id = UUID()
-            newItem.timestamp = Date()
-            newItem.title = name
-            newItem.pinned = false
-            
             do {
-                try viewContext.save()
+                try viewContext.addItem(name: name)
             } catch {
                 // Replace this implementation with code to handle the error appropriately.
                 // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
